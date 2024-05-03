@@ -1,5 +1,8 @@
+const readline = require('readline');
+
 class AutoDrivingCar {
-    constructor(width, height, position, facing) {
+    constructor(name, width, height, position, facing) {
+        this.name = name;
         this.width = width;
         this.height = height;
         this.position = position;
@@ -53,6 +56,10 @@ class AutoDrivingCar {
         }
     }
 
+    isValidPosition(x, y) {
+        return x >= 0 && x < this.width && y >= 0 && y < this.height;
+    }
+
     executeCommands(commands) {
         for (let command of commands) {
             this.move(command);
@@ -64,11 +71,6 @@ class AutoDrivingCar {
     }
 }
 
-// Example usage
-const [width, height] = [10, 10];
-const [x, y, facing] = [1, 2, 'N'];
-const commands = 'FFRFFFRRLF';
 
-const car = new AutoDrivingCar(width, height, [x, y], facing);
-car.executeCommands(commands);
-console.log(car.getPositionAndFacing()); // Output: 4 3 S
+module.exports = AutoDrivingCar;
+

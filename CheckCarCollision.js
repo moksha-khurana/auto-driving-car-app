@@ -1,72 +1,51 @@
-class AutoDrivingCar {
-    constructor(name, width, height, position, facing) {
-        this.name = name;
-        this.width = width;
-        this.height = height;
-        this.position = position;
-        this.facing = facing;
-        this.directions = ['N', 'E', 'S', 'W']; // North, East, South, West
+const AutoDrivingCar = require('./AutoDrivingCar');
+const readline = require('readline');
+
+async function main() {
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
+
+    const widthHeight = await new Promise((resolve) => {
+        rl.question("Enter field width and height (e.g., 10 10): ", (answer) => {
+            resolve(answer.split(" ").map(Number));
+        });
+    });
+
+    const numCars = await new Promise((resolve) => {
+        rl.question("Enter the number of cars: ", (answer) => {
+            resolve(parseInt(answer, 10));
+        });
+    });
+
+    const cars = [];
+    for (let i = 0; i < numCars; i++) {
+        const carPositionFacing = await new Promise((resolve) => {
+            rl.question(`Enter position and facing direction for Car ${i + 1} (e.g., 1 2 N): `, (answer) => {
+                resolve(answer.split(" "));
+            });
+        });
+
+        const carCommands = await new Promise((resolve) => {
+            rl.question(`Enter commands for Car ${i + 1} (e.g., FFRFFFFRRL): `, (answer) => {
+                resolve(answer);
+            });
+        });
+
+        const [x, y, facing] = carPositionFacing;
+        cars.push(new AutoDrivingCar(`Car ${i + 1}`, widthHeight[0], widthHeight[1], [parseInt(x, 10), parseInt(y, 10)], facing));
+        cars[i].executeCommands(carCommands);
     }
 
-    move(command) {
-        switch(command) {
-            case 'L':
-                this.rotateLeft();
-                break;
-            case 'R':
-                this.rotateRight();
-                break;
-            case 'F':
-                this.moveForward();
-                break;
-        }
+    const collisionInfo = checkCollision(cars);
+    if (collisionInfo === 'no collision') {
+        console.log('no collision');
+    } else {
+        console.log(collisionInfo);
     }
 
-    rotateLeft() {
-        const currentDirectionIndex = this.directions.indexOf(this.facing);
-        this.facing = this.directions[(currentDirectionIndex + 3) % 4]; // Rotate 90 degrees left
-    }
-
-    rotateRight() {
-        const currentDirectionIndex = this.directions.indexOf(this.facing);
-        this.facing = this.directions[(currentDirectionIndex + 1) % 4]; // Rotate 90 degrees right
-    }
-
-    moveForward() {
-        let [x, y] = this.position;
-        switch(this.facing) {
-            case 'N':
-                y++;
-                break;
-            case 'E':
-                x++;
-                break;
-            case 'S':
-                y--;
-                break;
-            case 'W':
-                x--;
-                break;
-        }
-        // Check if the new position is within the boundary
-        if (this.isValidPosition(x, y)) {
-            this.position = [x, y];
-        }
-    }
-
-    isValidPosition(x, y) {
-        return x >= 0 && x < this.width && y >= 0 && y < this.height;
-    }
-
-    executeCommands(commands) {
-        for (let command of commands) {
-            this.move(command);
-        }
-    }
-
-    getPosition() {
-        return `${this.position[0]} ${this.position[1]}`;
-    }
+    rl.close();
 }
 
 function checkCollision(cars) {
@@ -76,7 +55,7 @@ function checkCollision(cars) {
         for (let car of cars) {
             const [x, y] = car.position;
             if (visited.has(`${x} ${y}`)) {
-                return `Collision at ${x} ${y} at step ${step}`;
+                return `${cars[0].name} ${cars[1].name}\n${x} ${y}\n${step}`;
             }
             positions.set(`${x} ${y}`, car.name);
         }
@@ -93,13 +72,6 @@ function checkCollision(cars) {
     }
 }
 
-// Example usage
-const cars = [
-    new AutoDrivingCar('A', 10, 10, [1, 2], 'N'),
-    new AutoDrivingCar('B', 10, 10, [7, 8], 'W')
-];
+main();
 
-cars[0].executeCommands('FFRFFFFRRL');
-cars[1].executeCommands('FFLFFFFFFF');
-
-console.log(checkCollision(cars));
+module.exports = main; 
